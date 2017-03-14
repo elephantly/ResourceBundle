@@ -22,13 +22,8 @@ class GenericController extends Controller
 
 
     public function __construct(GenericRestRepositoryInterface $resourceRepository,
-                                GenericRestSerializerInterface $resourceSerializer,
-                                GenericRestDeserializerInterface $resourceDeserializer,
                                 $resourceMetadata){
-        $this->resourceName          = $resourceName;
         $this->resourceRepository    = $resourceRepository;
-        $this->resourceSerializer    = $resourceSerializer;
-        $this->resourceDeserializer  = $resourceDeserializer;
         $this->resourceMetadata      = $resourceMetadata;
     }
 
