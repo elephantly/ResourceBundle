@@ -1,9 +1,9 @@
 <?php
 
-namespace elephantly\ResourceBundle;
+namespace Elephantly\ResourceBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class elephantlyResourceBundle extends Bundle
+class ElephantlyResourceBundle extends Bundle
 {
 }

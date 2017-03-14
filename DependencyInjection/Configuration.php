@@ -1,6 +1,6 @@
 <?php
 
-namespace elephantly\ResourceBundle\DependencyInjection;
+namespace Elephantly\ResourceBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
