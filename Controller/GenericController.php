@@ -3,6 +3,7 @@
 namespace Elephantly\ResourceBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Elephantly\ResourceBundle\Doctrine\ORM\GenericRepositoryInterface;
 
 /**
 * @author purplebabar lalung.alexandre@gmail.com
@@ -11,7 +12,7 @@ class GenericController extends Controller
 {
 
     /**
-    *   @var GenericRestRepositoryInterface
+    *   @var GenericRepositoryInterface
     */
     protected $resourceRepository;
 
@@ -21,7 +22,7 @@ class GenericController extends Controller
     protected $resourceMetadata;
 
 
-    public function __construct(GenericRestRepositoryInterface $resourceRepository,
+    public function __construct($resourceRepository,
                                 $resourceMetadata){
         $this->resourceRepository    = $resourceRepository;
         $this->resourceMetadata      = $resourceMetadata;
@@ -44,10 +45,10 @@ class GenericController extends Controller
 
     public function indexAction(Request $request)
     {
-
+        echo 'pouet';exit;
         // Getting parameters from
-        $limit = $request->query->has('limit') ? $request->query->get('limit') : 20;
-        $offset = $request->query->has('page') ? $request->query->get('page')*$limit : 0;
+        // $limit = $request->query->has('limit') ? $request->query->get('limit') : 20;
+        // $offset = $request->query->has('page') ? $request->query->get('page')*$limit : 0;
 
         $data = array();
 
