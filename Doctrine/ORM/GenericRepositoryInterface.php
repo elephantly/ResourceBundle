@@ -2,6 +2,8 @@
 
 namespace Elephantly\ResourceBundle\Doctrine\ORM;
 
+use Doctrine\ORM\QueryBuilder;
+
 interface GenericRepositoryInterface
 {
 
@@ -11,7 +13,7 @@ interface GenericRepositoryInterface
 
     public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null);
 
-    public function filter(QueryBuilder $queryBuilder, array $criteria = array());
+    // public function filter(QueryBuilder $queryBuilder, array $criteria = array());
 
     public function sort(QueryBuilder $queryBuilder, array $sorting = array());
 

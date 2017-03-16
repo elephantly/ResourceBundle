@@ -1,7 +1,7 @@
 parameters:
-#    elephantly_resource.example.class: elephantly\ResourceBundle\Example
+   elephantly.factory.repository.class: Elephantly\ResourceBundle\Doctrine\Factory\RepositoryFactory
 
 services:
-#    elephantly_resource.example:
-#        class: %elephantly_resource.example.class%
-#        arguments: [@service_id, "plain_value", %parameter%]
+   elephantly.factory.repository:
+       class: %elephantly.factory.repository.class%
+    #    arguments: [@doctrine.orm.entity_manager, %parameter%]

@@ -3,7 +3,9 @@
 namespace Elephantly\ResourceBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Request;
 use Elephantly\ResourceBundle\Doctrine\ORM\GenericRepositoryInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 
 /**
 * @author purplebabar lalung.alexandre@gmail.com
@@ -19,13 +21,20 @@ class GenericController extends Controller
     /**
     *   @var string
     */
-    protected $resourceMetadata;
+    protected $class;
+
+    /**
+    *   @var string
+    */
+    protected $name;
 
 
-    public function __construct($resourceRepository,
-                                $resourceMetadata){
+    public function __construct(GenericRepositoryInterface $resourceRepository,
+                                $class,
+                                $name){
         $this->resourceRepository    = $resourceRepository;
-        $this->resourceMetadata      = $resourceMetadata;
+        $this->class      = $class;
+        $this->name      = $name;
     }
 
     /**
@@ -38,23 +47,24 @@ class GenericController extends Controller
     public function showAction(Request $request, $id)
     {
         $resource = $this->findOr404('find', array($id));
-        $data = $this->resourceSerializer->serialize($resource, $this->getVersion($request));
 
-        return $this->handleResponse(JsonResponse::HTTP_OK, $data);
+        return $this->render($this->getFromConfig($request, 'template'), array());
     }
 
     public function indexAction(Request $request)
     {
-        echo 'pouet';exit;
         // Getting parameters from
         // $limit = $request->query->has('limit') ? $request->query->get('limit') : 20;
         // $offset = $request->query->has('page') ? $request->query->get('page')*$limit : 0;
 
-        $data = array();
+        // $data = array();
 
-        $resources = $this->findOr404('findBy', array(array(), null, $limit, $offset));
+        $resources = $this->findOr404('findBy', array(array()) );
 
-        return $this->handleResponse(JsonResponse::HTTP_OK, $data);
+        return $this->render($this->getFromConfig($request, 'template'), array(
+            // TODO: pluralize resource name
+            $this->name."s" => $resources
+        ));
 
     }
 
@@ -62,11 +72,9 @@ class GenericController extends Controller
     {
         $resource = new $this->resourceMetadata();
 
-        $resource = $this->resourceDeserializer->create($this->getContent($request), $resource, $this->getVersion($request));
-
         $this->resourceRepository->save($resource);
 
-        return $this->handleResponse(JsonResponse::HTTP_CREATED, $data);
+        return $this->render($this->getFromConfig($request, 'template'), array());
 
     }
 
@@ -75,11 +83,9 @@ class GenericController extends Controller
 
         $resource = $this->findOr404('find', array($id));
 
-        $resource = $this->resourceDeserializer->update($this->getContent($request), $resource, $this->getVersion($request));
-
         $this->resourceRepository->save($resource);
 
-        return $this->handleResponse($status, $data);
+        return $this->render($this->getFromConfig($request, 'template'), array());
     }
 
     public function deleteAction(Request $request, $id)
@@ -88,7 +94,7 @@ class GenericController extends Controller
 
         $this->resourceRepository->delete($resource);
 
-        return $this->handleResponse($status, $data);
+        return $this->render($this->getFromConfig($request, 'template'), array());
     }
 
     protected function findOr404($repositoryMethod, $arguments = array())
@@ -98,6 +104,15 @@ class GenericController extends Controller
             // throw new NotFoundJsonException();
         }
         return $resource;
+    }
+
+    public function getFromConfig(Request $request, $attribute)
+    {
+        if (!isset($request->attributes->get('_elephantly')[$attribute]))
+        {
+            throw new InvalidConfigurationException(sprintf('The "%s" parameter has not been found in your configuration', $attribute));
+        }
+        return $request->attributes->get('_elephantly')[$attribute];
     }
 
 }

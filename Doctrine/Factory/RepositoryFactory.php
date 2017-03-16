@@ -1,13 +1,13 @@
 <?php
 
-namespace Elephantly\OGBundle\Doctrine\Factory;
+namespace Elephantly\ResourceBundle\Doctrine\Factory;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Repository\RepositoryFactory;
+use Doctrine\ORM\Repository\RepositoryFactory as BaseRepositoryFactory;
 use Elephantly\ResourceBundle\Doctrine\ORM\GenericRepositoryInterface;
 use Elephantly\ResourceBundle\Doctrine\ORM\GenericRepository;
 
-class RepositoryFactory implements RepositoryFactory
+class RepositoryFactory implements BaseRepositoryFactory
 {
 
     private $repositoryList = array();

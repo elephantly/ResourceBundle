@@ -8,7 +8,6 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
-use Doctrine\ORM\Mapping\ClassMetadata;
 
 /**
  * This is the class that loads and manages your bundle configuration
@@ -20,6 +19,7 @@ class ElephantlyResourceExtension extends Extension
     CONST CONTROLLER_CLASS = 'Elephantly\ResourceBundle\Controller\GenericController';
     CONST REPOSITORY_CLASS = 'Elephantly\ResourceBundle\Doctrine\ORM\GenericRepository';
     CONST ENTITY_MANAGER = 'doctrine.orm.entity_manager';
+    CONST REPOSITORY_FACTORY = 'elephantly.factory.repository';
 
     /**
      * {@inheritDoc}
@@ -40,16 +40,14 @@ class ElephantlyResourceExtension extends Extension
     {
         foreach ($config['resources'] as $resourceName => $resource) {
 
-            $resourceMetadata = new ClassMetadata($resource['class']);
-
-            $this->registerRepository($container, $resourceName, $resourceMetadata, $resource);
-            $this->registerController($container, $resourceName, $resourceMetadata, $resource);
+            $this->registerRepository($container, $resourceName, $resource);
+            $this->registerController($container, $resourceName, $resource);
 
         }
 
     }
 
-    public function registerRepository(ContainerBuilder $container, $resourceName, ClassMetadata $resourceMetadata, $conf)
+    public function registerRepository(ContainerBuilder $container, $resourceName, $conf)
     {
         $entityManager = is_null($conf['entity_manager']) ? self::ENTITY_MANAGER : $conf['entity_manager'];
 
@@ -58,18 +56,19 @@ class ElephantlyResourceExtension extends Extension
         $repositoryDefinition = new Definition($container->getParameter(sprintf('elephantly.%s.repository.class', $resourceName)));
         $repositoryDefinition
            ->setFactory(array(
-               new Reference($entityManager),
+               new Reference(self::REPOSITORY_FACTORY),
                'getRepository'
            ))
            ->setArguments(array(
-               $resourceMetadata->getName()
+               new Reference($entityManager),
+               $conf['class']
            ))
        ;
 
        $container->setDefinition(sprintf('elephantly.%s.repository', $resourceName), $repositoryDefinition);
     }
 
-    public function registerController(ContainerBuilder $container, $resourceName, ClassMetadata $resourceMetadata, $conf)
+    public function registerController(ContainerBuilder $container, $resourceName, $conf)
     {
         $controllerClass = is_null($conf['controller']) ? self::CONTROLLER_CLASS : $conf['controller'];
 
@@ -79,7 +78,8 @@ class ElephantlyResourceExtension extends Extension
         $controllerDefinition
            ->setArguments(array(
                new Reference(sprintf('elephantly.%s.repository', $resourceName)),
-               $resourceMetadata->getName()
+               $conf['class'],
+               $resourceName
            ))
            ->addMethodCall('setContainer', array(new Reference('service_container')))
        ;
