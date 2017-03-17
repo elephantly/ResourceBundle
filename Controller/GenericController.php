@@ -6,6 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Elephantly\ResourceBundle\Doctrine\ORM\GenericRepositoryInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Elephantly\ResourceBundle\Form\GenericFormType;
 
 /**
 * @author purplebabar lalung.alexandre@gmail.com
@@ -44,11 +45,13 @@ class GenericController extends Controller
      *
      * @return JsonResponse
      */
-    public function showAction(Request $request, $id)
+    public function showAction(Request $request, $id = 1)
     {
         $resource = $this->findOr404('find', array($id));
 
-        return $this->render($this->getFromConfig($request, 'template'), array());
+        return $this->render($this->getFromConfig($request, 'template'), array(
+            $this->name => $resource
+        ));
     }
 
     public function indexAction(Request $request)
@@ -70,22 +73,42 @@ class GenericController extends Controller
 
     public function createAction(Request $request)
     {
-        $resource = new $this->resourceMetadata();
+        $resource = new $this->class();
+        $form = $this->createForm(GenericFormType::class, $resource, array('data_class' => $this->class));
 
-        $this->resourceRepository->save($resource);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
 
-        return $this->render($this->getFromConfig($request, 'template'), array());
+            $this->resourceRepository->save($resource);
+
+            //TODO: redirect to indexAction
+        }
+
+        return $this->render($this->getFromConfig($request, 'template'), array(
+            $this->name => $resource,
+            'form' => $form->createView()
+        ));
 
     }
 
     public function updateAction(Request $request, $id)
     {
-
         $resource = $this->findOr404('find', array($id));
+        $form = $this->createForm(GenericFormType::class, $resource, array('data_class' => $this->class));
 
-        $this->resourceRepository->save($resource);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
 
-        return $this->render($this->getFromConfig($request, 'template'), array());
+            $this->resourceRepository->save($resource);
+
+            //TODO: redirect to indexAction
+        }
+
+        return $this->render($this->getFromConfig($request, 'template'), array(
+            $this->name => $resource,
+            'form' => $form->createView()
+        ));
+
     }
 
     public function deleteAction(Request $request, $id)
@@ -93,7 +116,7 @@ class GenericController extends Controller
         $resource = $this->findOr404('find', array($id));
 
         $this->resourceRepository->delete($resource);
-
+        //TODO: redirect to indexAction
         return $this->render($this->getFromConfig($request, 'template'), array());
     }
 
