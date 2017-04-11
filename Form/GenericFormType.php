@@ -27,7 +27,9 @@ class GenericFormType extends AbstractType
         $properties = $reflectionExtractor->getProperties($class);
 
         foreach ($properties as $property) {
-            $builder->add($property);
+            if ($reflectionExtractor->isWritable($class, $property)) {
+                $builder->add($property);
+            }
         }
 
     }

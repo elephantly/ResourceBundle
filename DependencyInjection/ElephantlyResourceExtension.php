@@ -72,6 +72,8 @@ class ElephantlyResourceExtension extends Extension
     {
         $controllerClass = is_null($conf['controller']) ? self::CONTROLLER_CLASS : $conf['controller'];
 
+        $formType = is_null($conf['form_type']) ? 'Elephantly\ResourceBundle\Form\GenericFormType' : $conf['form_type'];
+
         $container->setParameter(sprintf('elephantly.%s.controller.class', $resourceName), $controllerClass);
 
         $controllerDefinition = new Definition($container->getParameter(sprintf('elephantly.%s.controller.class', $resourceName)));
@@ -79,7 +81,8 @@ class ElephantlyResourceExtension extends Extension
            ->setArguments(array(
                new Reference(sprintf('elephantly.%s.repository', $resourceName)),
                $conf['class'],
-               $resourceName
+               $resourceName,
+               $formType
            ))
            ->addMethodCall('setContainer', array(new Reference('service_container')))
        ;

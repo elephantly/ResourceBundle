@@ -6,7 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Elephantly\ResourceBundle\Doctrine\ORM\GenericRepositoryInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Elephantly\ResourceBundle\Form\GenericFormType;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 /**
 * @author purplebabar lalung.alexandre@gmail.com
@@ -28,14 +28,21 @@ class GenericController extends Controller
     *   @var string
     */
     protected $name;
+    
+    /**
+    *   @var string
+    */
+    protected $formType;
 
 
     public function __construct(GenericRepositoryInterface $resourceRepository,
                                 $class,
-                                $name){
+                                $name,
+                                $formType){
         $this->resourceRepository    = $resourceRepository;
         $this->class      = $class;
         $this->name      = $name;
+        $this->formType      = $formType;
     }
 
     /**
@@ -73,15 +80,16 @@ class GenericController extends Controller
 
     public function createAction(Request $request)
     {
+
         $resource = new $this->class();
-        $form = $this->createForm(GenericFormType::class, $resource, array('data_class' => $this->class));
+        $form = $this->createForm($this->formType, $resource, array('data_class' => $this->class));
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
 
             $this->resourceRepository->save($resource);
 
-            //TODO: redirect to indexAction
+            $this->forward('elephantly.'.$this->name.'.controller:updateAction', array('id' => $resource->getId()));
         }
 
         return $this->render($this->getFromConfig($request, 'template'), array(
@@ -94,14 +102,13 @@ class GenericController extends Controller
     public function updateAction(Request $request, $id)
     {
         $resource = $this->findOr404('find', array($id));
-        $form = $this->createForm(GenericFormType::class, $resource, array('data_class' => $this->class));
+        $form = $this->createForm($this->formType, $resource, array('data_class' => $this->class));
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
 
             $this->resourceRepository->save($resource);
 
-            //TODO: redirect to indexAction
         }
 
         return $this->render($this->getFromConfig($request, 'template'), array(
@@ -113,11 +120,13 @@ class GenericController extends Controller
 
     public function deleteAction(Request $request, $id)
     {
+
         $resource = $this->findOr404('find', array($id));
 
         $this->resourceRepository->delete($resource);
-        //TODO: redirect to indexAction
-        return $this->render($this->getFromConfig($request, 'template'), array());
+
+        $this->forward('elephantly.'.$this->name.'.controller:indexAction');
+
     }
 
     protected function findOr404($repositoryMethod, $arguments = array())
