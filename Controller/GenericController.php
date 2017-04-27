@@ -7,6 +7,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Elephantly\ResourceBundle\Doctrine\ORM\GenericRepositoryInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Elephantly\ResourceBundle\Entity\Actions;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Elephantly\ResourceBundle\Event\ResourceEvent;
+
+// TODO: Index filtering + events + right check
 
 /**
 * @author purplebabar lalung.alexandre@gmail.com
@@ -34,15 +40,20 @@ class GenericController extends Controller
     */
     protected $formType;
 
+    /**
+    *   @var s
+    */
+    protected $eventDispatcher;
 
     public function __construct(GenericRepositoryInterface $resourceRepository,
                                 $class,
                                 $name,
                                 $formType){
-        $this->resourceRepository    = $resourceRepository;
-        $this->class      = $class;
-        $this->name      = $name;
-        $this->formType      = $formType;
+        $this->resourceRepository = $resourceRepository;
+        $this->class              = $class;
+        $this->name               = $name;
+        $this->formType           = $formType;
+        $this->eventDispatcher    = new EventDispatcher();
     }
 
     /**
@@ -54,7 +65,10 @@ class GenericController extends Controller
      */
     public function showAction(Request $request, $id = 1)
     {
+
         $resource = $this->findOr404('find', array($id));
+
+        $this->dispatch(Actions::SHOW, $resource);
 
         return $this->render($this->getFromConfig($request, 'template'), array(
             $this->name => $resource
@@ -67,9 +81,9 @@ class GenericController extends Controller
         // $limit = $request->query->has('limit') ? $request->query->get('limit') : 20;
         // $offset = $request->query->has('page') ? $request->query->get('page')*$limit : 0;
 
-        // $data = array();
-
         $resources = $this->findOr404('findBy', array(array()) );
+        
+        $this->dispatch(Actions::INDEX, $resource);
 
         return $this->render($this->getFromConfig($request, 'template'), array(
             // TODO: pluralize resource name
@@ -89,7 +103,7 @@ class GenericController extends Controller
 
             $this->resourceRepository->save($resource);
 
-            $this->forward('elephantly.'.$this->name.'.controller:updateAction', array('id' => $resource->getId()));
+            $this->forward('elephantly.'.$this->name.'.controller:showAction', array('id' => $resource->getId()));
         }
 
         return $this->render($this->getFromConfig($request, 'template'), array(
@@ -133,7 +147,7 @@ class GenericController extends Controller
     {
         if (null === $resource = call_user_func_array ( array( $this->resourceRepository, $repositoryMethod), $arguments))
         {
-            // throw new NotFoundJsonException();
+            throw new NotFoundHttpException();
         }
         return $resource;
     }
@@ -145,6 +159,13 @@ class GenericController extends Controller
             throw new InvalidConfigurationException(sprintf('The "%s" parameter has not been found in your configuration', $attribute));
         }
         return $request->attributes->get('_elephantly')[$attribute];
+    }
+
+    public function dispatch($action, $resource)
+    {
+        $event     = new ResourceEvent($resource);
+        $eventName = $action.'.'.$this->name;
+        $this->eventDispatcher->dispatch($eventName, $event);
     }
 
 }

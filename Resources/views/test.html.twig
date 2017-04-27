@@ -1,2 +1,10 @@
 pouet
-{{form(form)}}
+{#{{form(form)}}#}
+{#{{dump()}}#}
+<form action="{{ path('elephantly_og_homepage') }}" method="post" class="form-horizontal" novalidate>
+    {{form_widget(form)}}
+    <div class="form-actions">
+    <input type="submit"/>
+    </div>
+</form>
+
