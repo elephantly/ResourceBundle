@@ -1,4 +1,5 @@
-pouet
+{% extends 'ElephantlyResourceBundle::layout.html.twig' %}
+{% block content %}
 {#{{form(form)}}#}
 {#{{dump()}}#}
 <form action="{{ path('elephantly_og_homepage') }}" method="post" class="form-horizontal" novalidate>
@@ -7,4 +8,4 @@ pouet
     <input type="submit"/>
     </div>
 </form>
-
+{% endblock %}

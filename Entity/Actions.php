@@ -12,11 +12,14 @@ class Actions
     CONST INDEX       = "elephantly.index";
 
     CONST PRE_CREATE  = "elephantly.pre_create";
+    CONST CREATE      = "elephantly.create";
     CONST POST_CREATE = "elephantly.post_create";
 
     CONST PRE_UPDATE  = "elephantly.pre_update";
+    CONST UPDATE      = "elephantly.update";
     CONST POST_UPDATE = "elephantly.post_update";
 
     CONST PRE_DELETE  = "elephantly.pre_delete";
+    CONST DELETE      = "elephantly.delete";
     CONST POST_DELETE = "elephantly.post_delete";
 }

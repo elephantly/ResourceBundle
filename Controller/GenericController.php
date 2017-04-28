@@ -12,7 +12,7 @@ use Elephantly\ResourceBundle\Entity\Actions;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Elephantly\ResourceBundle\Event\ResourceEvent;
 
-// TODO: Index filtering + events + right check
+// TODO: Index filtering + right check
 
 /**
 * @author purplebabar lalung.alexandre@gmail.com
@@ -70,7 +70,7 @@ class GenericController extends Controller
 
         $this->dispatch(Actions::SHOW, $resource);
 
-        return $this->render($this->getFromConfig($request, 'template'), array(
+        return $this->render($this->getFromConfig($request, 'template', true), array(
             $this->name => $resource
         ));
     }
@@ -85,7 +85,7 @@ class GenericController extends Controller
         
         $this->dispatch(Actions::INDEX, $resource);
 
-        return $this->render($this->getFromConfig($request, 'template'), array(
+        return $this->render($this->getFromConfig($request, 'template', true), array(
             // TODO: pluralize resource name
             $this->name."s" => $resources
         ));
@@ -94,19 +94,24 @@ class GenericController extends Controller
 
     public function createAction(Request $request)
     {
-
+        
+        $this->accessGrantedOr403($request, Actions::CREATE);
+        
         $resource = new $this->class();
+        $this->dispatch(Actions::PRE_CREATE, $resource);
         $form = $this->createForm($this->formType, $resource, array('data_class' => $this->class));
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
 
             $this->resourceRepository->save($resource);
-
+            
+            $this->dispatch(Actions::POST_CREATE, $resource);
+            
             $this->forward('elephantly.'.$this->name.'.controller:showAction', array('id' => $resource->getId()));
         }
 
-        return $this->render($this->getFromConfig($request, 'template'), array(
+        return $this->render($this->getFromConfig($request, 'template', true), array(
             $this->name => $resource,
             'form' => $form->createView()
         ));
@@ -116,6 +121,7 @@ class GenericController extends Controller
     public function updateAction(Request $request, $id)
     {
         $resource = $this->findOr404('find', array($id));
+        $this->dispatch(Actions::PRE_UPDATE, $resource);
         $form = $this->createForm($this->formType, $resource, array('data_class' => $this->class));
 
         $form->handleRequest($request);
@@ -124,8 +130,9 @@ class GenericController extends Controller
             $this->resourceRepository->save($resource);
 
         }
+        $this->dispatch(Actions::POST_UPDATE, $resource);
 
-        return $this->render($this->getFromConfig($request, 'template'), array(
+        return $this->render($this->getFromConfig($request, 'template', true), array(
             $this->name => $resource,
             'form' => $form->createView()
         ));
@@ -136,8 +143,10 @@ class GenericController extends Controller
     {
 
         $resource = $this->findOr404('find', array($id));
-
+        
+        $this->dispatch(Actions::PRE_DELETE, $resource);
         $this->resourceRepository->delete($resource);
+        $this->dispatch(Actions::POST_DELETE, $resource);
 
         $this->forward('elephantly.'.$this->name.'.controller:indexAction');
 
@@ -152,11 +161,24 @@ class GenericController extends Controller
         return $resource;
     }
 
-    public function getFromConfig(Request $request, $attribute)
+    protected function accessGrantedOr403(Request $request, $action)
+    {
+        $permission = $this->getFromConfig($request, 'permission');
+        if ($permission = $permission ? $permission : true) {
+            // if ($action.$this->name) {
+            //     TODO: check acl with http://symfony.com/doc/current/security/acl.html
+            // }
+        }
+    }
+
+    public function getFromConfig(Request $request, $attribute, $required = false)
     {
         if (!isset($request->attributes->get('_elephantly')[$attribute]))
-        {
-            throw new InvalidConfigurationException(sprintf('The "%s" parameter has not been found in your configuration', $attribute));
+        {   
+            if ($required) {
+                throw new InvalidConfigurationException(sprintf('The "%s" parameter has not been found in your configuration', $attribute));
+            }
+            return null;
         }
         return $request->attributes->get('_elephantly')[$attribute];
     }
