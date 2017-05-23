@@ -112,7 +112,7 @@ class GenericController extends Controller
 
             $this->dispatch(Actions::POST_CREATE, $resource);
 
-            $this->forward('elephantly.'.$this->name.'.controller:showAction', array('id' => $resource->getId()));
+            return $this->redirectToRoute($this->getFromConfig($request, 'redirect', true), array('id' => $resource->getId()));
         }
 
         return $this->render($this->getFromConfig($request, 'template', true), array(
@@ -152,7 +152,7 @@ class GenericController extends Controller
         $this->resourceRepository->delete($resource);
         $this->dispatch(Actions::POST_DELETE, $resource);
 
-        $this->forward('elephantly.'.$this->name.'.controller:indexAction');
+        return $this->redirectToRoute($this->getFromConfig($request, 'redirect', true));
 
     }
 
