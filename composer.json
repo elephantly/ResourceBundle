@@ -21,7 +21,7 @@
         "bin-dir": "bin"
     },
     "autoload": {
-        "psr-4": { "Elephantly\\ResourceBundle\\": "" },
+        "psr-4": { "Elephantly\\ResourceBundle\\": "" }
     },
     "autoload-dev": {
     },
