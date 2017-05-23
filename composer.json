@@ -1,0 +1,36 @@
+{
+    "name": "elephantly/resource-bundle",
+    "type": "symfony-bundle",
+    "description": "A bundle to handle every resource without the hassle of coding",
+    "keywords": ["bundle", "resource", "form", "controller", "entity", "handling"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alexandre Lalung",
+            "email": "lalung.alexandre@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^5.3",
+        "symfony/framework-bundle": "^2.7"
+    },
+    "require-dev": {
+
+    },
+    "config": {
+        "bin-dir": "bin"
+    },
+    "autoload": {
+        "psr-4": { "Elephantly\\ResourceBundle\\": "" },
+    },
+    "autoload-dev": {
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "post-install-cmd": [
+        ],
+        "post-update-cmd": [
+        ]
+    }
+}
