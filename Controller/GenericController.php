@@ -177,15 +177,15 @@ class GenericController extends Controller
 
     public function getFromConfig(Request $request, $attribute, $required = false)
     {
-        $attributeValue = $request->attributes->get('_elephantly')[$attribute];
-        if (!isset($attributeValue))
+        $attributes = $request->attributes->get('_elephantly');
+        if (!isset($attributes[$attribute]))
         {
             if ($required) {
                 throw new InvalidConfigurationException(sprintf('The "%s" parameter has not been found in your configuration', $attribute));
             }
             return null;
         }
-        return $attributeValue;
+        return $attributes[$attribute];
     }
 
     public function getFromQuery(Request $request, $attribute)
