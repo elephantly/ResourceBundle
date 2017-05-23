@@ -12,7 +12,7 @@ use Elephantly\ResourceBundle\Entity\Actions;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Elephantly\ResourceBundle\Event\ResourceEvent;
 
-// TODO: Index filtering + right check
+// TODO: right check
 
 /**
 * @author purplebabar lalung.alexandre@gmail.com
@@ -34,14 +34,14 @@ class GenericController extends Controller
     *   @var string
     */
     protected $name;
-    
+
     /**
     *   @var string
     */
     protected $formType;
 
     /**
-    *   @var s
+    *   @var EventDispatcher
     */
     protected $eventDispatcher;
 
@@ -78,12 +78,16 @@ class GenericController extends Controller
     public function indexAction(Request $request)
     {
         // Getting parameters from
-        // $limit = $request->query->has('limit') ? $request->query->get('limit') : 20;
-        // $offset = $request->query->has('page') ? $request->query->get('page')*$limit : 0;
+        $limit = $this->getFromQuery($request, 'limit') ? $this->getFromQuery($request, 'limit') : 20;
+        $offset = $this->getFromQuery($request, 'page') ? $this->getFromQuery($request, 'page')*$limit : 0;
+        $orderBy = $this->getFromQuery($request, 'orderBy') ? $this->getFromQuery($request, 'orderBy') : array();
+        $criteria = $this->getFromQuery($request, 'criteria') ? $this->getFromQuery($request, 'criteria') : array();
 
-        $resources = $this->findOr404('findBy', array(array()) );
-        
-        $this->dispatch(Actions::INDEX, $resource);
+        // \Doctrine\Common\Util\Debug::dump($criteria);exit;
+
+        $resources = $this->findOr404('findBy', array($criteria, $orderBy, $limit, $offset) );
+
+        $this->dispatch(Actions::INDEX, $resources);
 
         return $this->render($this->getFromConfig($request, 'template', true), array(
             // TODO: pluralize resource name
@@ -94,9 +98,9 @@ class GenericController extends Controller
 
     public function createAction(Request $request)
     {
-        
+
         $this->accessGrantedOr403($request, Actions::CREATE);
-        
+
         $resource = new $this->class();
         $this->dispatch(Actions::PRE_CREATE, $resource);
         $form = $this->createForm($this->formType, $resource, array('data_class' => $this->class));
@@ -105,9 +109,9 @@ class GenericController extends Controller
         if ($form->isSubmitted() && $form->isValid()) {
 
             $this->resourceRepository->save($resource);
-            
+
             $this->dispatch(Actions::POST_CREATE, $resource);
-            
+
             $this->forward('elephantly.'.$this->name.'.controller:showAction', array('id' => $resource->getId()));
         }
 
@@ -143,7 +147,7 @@ class GenericController extends Controller
     {
 
         $resource = $this->findOr404('find', array($id));
-        
+
         $this->dispatch(Actions::PRE_DELETE, $resource);
         $this->resourceRepository->delete($resource);
         $this->dispatch(Actions::POST_DELETE, $resource);
@@ -174,13 +178,22 @@ class GenericController extends Controller
     public function getFromConfig(Request $request, $attribute, $required = false)
     {
         if (!isset($request->attributes->get('_elephantly')[$attribute]))
-        {   
+        {
             if ($required) {
                 throw new InvalidConfigurationException(sprintf('The "%s" parameter has not been found in your configuration', $attribute));
             }
             return null;
         }
         return $request->attributes->get('_elephantly')[$attribute];
+    }
+
+    public function getFromQuery(Request $request, $attribute)
+    {
+        if (!$value = $request->query->get($attribute))
+        {
+            $value = $this->getFromConfig($request, $attribute);
+        }
+        return $value;
     }
 
     public function dispatch($action, $resource)

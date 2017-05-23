@@ -66,7 +66,7 @@ class GenericRepository extends BaseEntityRepository implements GenericRepositor
     }
 
 
-    public function criteria(QueryBuilder $queryBuilder, array $criteria = array())
+    public function filter(QueryBuilder $queryBuilder, array $criteria = array())
     {
         foreach ($criteria as $property => $value) {
             $name = 'e.'.$property;
@@ -86,7 +86,7 @@ class GenericRepository extends BaseEntityRepository implements GenericRepositor
     {
         foreach ($sorting as $property => $order) {
             if (!empty($order)) {
-                $queryBuilder->addOrderBy('e'.$property, $order);
+                $queryBuilder->addOrderBy('e.'.$property, $order);
             }
         }
     }
